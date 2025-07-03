@@ -13,6 +13,7 @@ export default function BarraNavegacao() {
                                 />
                             </a>
                         </div>
+                        
                         <div className="hidden sm:ml-6 sm:block">
                             <div className="flex space-x-4">
                                 <a href="/" className="text-white hover:bg-green-dark rounded-md px-3 py-2 text-sm font-medium" aria-current="page">Home</a>
