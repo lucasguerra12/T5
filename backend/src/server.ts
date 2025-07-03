@@ -2,189 +2,74 @@ import express from 'express';
 import cors from 'cors';
 
 const app = express();
+// Middlewares para permitir comunicação entre frontend/backend e para entender JSON
 app.use(cors());
 app.use(express.json());
 
-
-
-interface Telefone {
-    ddd: string;
-    numero: string;
-}
-
-interface Endereco {
-    estado: string;
-    cidade: string;
-    bairro: string;
-    rua: string;
-    numero: string;
-    codigoPostal: string;
-    informacoesAdicionais: string;
-}
-
-interface Cliente {
-    id: number;
-    nome: string;
-    sobreNome: string;
-    email: string;
-    endereco: Endereco;
-    telefones: Telefone[];
-}
-
-interface Produto {
+// --- Interfaces (Contratos de Dados) ---
+export interface Servico {
     id: number;
     nome: string;
     preco: number;
 }
 
-interface Servico {
-    id: number;
-    nome: string;
-    preco: number;
-}
-
-
-let clientes: Cliente[] = [];
-let produtos: Produto[] = [
-    { id: 1, nome: 'Shampoo Anti-caspa', preco: 35.50 },
-    { id: 2, nome: 'Condicionador Hidratante', preco: 45.00 },
-    { id: 3, nome: 'Gel Modelador', preco: 25.00 }
-];
+// --- "Banco de Dados" em Memória ---
 let servicos: Servico[] = [
     { id: 1, nome: 'Manicure', preco: 40.00 },
     { id: 2, nome: 'Pedicure', preco: 50.00 },
-    { id: 3, nome: 'Corte de Cabelo', preco: 70.00 }
 ];
-
-let proximoIdCliente = clientes.length > 0 ? Math.max(...clientes.map(c => c.id)) + 1 : 1;
-let proximoIdProduto = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
+// Variável para garantir que o ID do próximo serviço seja sempre único
 let proximoIdServico = servicos.length > 0 ? Math.max(...servicos.map(s => s.id)) + 1 : 1;
 
 
+// --- Rotas da API para Serviços (CRUD) ---
 
-app.get('/clientes', (req, res) => {
-    res.json(clientes);
-});
-
-app.get('/cliente/:id', (req, res) => {
-    const id = parseInt(req.params.id, 10);
-    const cliente = clientes.find(c => c.id === id);
-    if (cliente) {
-        res.json(cliente);
-    } else {
-        res.status(404).send('Cliente não encontrado');
-    }
-});
-
-app.post('/cliente/cadastrar', (req, res) => {
-    const novoCliente: Cliente = { ...req.body, id: proximoIdCliente++ };
-    clientes.push(novoCliente);
-    res.status(201).json(novoCliente);
-});
-
-app.put('/cliente/atualizar', (req, res) => {
-    const clienteAtualizado: Cliente = req.body;
-    const index = clientes.findIndex(c => c.id === clienteAtualizado.id);
-    if (index !== -1) {
-        clientes[index] = clienteAtualizado;
-        res.status(200).json(clientes[index]);
-    } else {
-        res.status(404).send('Cliente não encontrado');
-    }
-});
-
-app.delete('/cliente/excluir', (req, res) => {
-    const { id } = req.body;
-    const index = clientes.findIndex(c => c.id === id);
-    if (index !== -1) {
-        clientes.splice(index, 1);
-        res.status(200).json({ message: 'Cliente excluído com sucesso' });
-    } else {
-        res.status(404).send('Cliente não encontrado');
-    }
-});
-
-
-
-app.get('/produtos', (req, res) => {
-    res.json(produtos);
-});
-
-app.post('/produto/cadastrar', (req, res) => {
-    const { nome, preco } = req.body;
-    const novoProduto: Produto = { 
-        id: proximoIdProduto++, 
-        nome, 
-        preco: parseFloat(preco)
-    };
-    produtos.push(novoProduto);
-    res.status(201).json(novoProduto);
-});
-
-app.put('/produto/atualizar', (req, res) => {
-    const produtoAtualizado: Produto = req.body;
-    const index = produtos.findIndex(p => p.id === produtoAtualizado.id);
-    if (index !== -1) {
-        produtos[index] = { ...produtoAtualizado, preco: parseFloat(String(produtoAtualizado.preco)) };
-        res.status(200).json(produtos[index]);
-    } else {
-        res.status(404).send('Produto não encontrado');
-    }
-});
-
-app.delete('/produto/excluir', (req, res) => {
-    const { id } = req.body;
-    const index = produtos.findIndex(p => p.id === id);
-    if (index !== -1) {
-        produtos.splice(index, 1);
-        res.status(200).json({ message: 'Produto excluído com sucesso' });
-    } else {
-        res.status(404).send('Produto não encontrado');
-    }
-});
-
-
+// GET /servicos: Rota para LER e listar todos os serviços
 app.get('/servicos', (req, res) => {
+    console.log('GET /servicos -> Listando serviços...');
     res.json(servicos);
 });
 
-
-app.post('/servico/cadastrar', (req, res) => {
+// POST /servicos: Rota para CRIAR um novo serviço
+app.post('/servicos', (req, res) => {
     const { nome, preco } = req.body;
     const novoServico: Servico = { 
         id: proximoIdServico++, 
         nome, 
-        preco: parseFloat(preco)
+        preco: parseFloat(preco) // Converte o preço de texto para número
     };
     servicos.push(novoServico);
+    console.log('POST /servicos -> Serviço cadastrado:', novoServico);
     res.status(201).json(novoServico);
 });
 
+// PUT /servicos/:id: Rota para ATUALIZAR um serviço existente
+app.put('/servicos/:id', (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const { nome, preco } = req.body;
+    const index = servicos.findIndex(s => s.id === id);
 
-app.put('/servico/atualizar', (req, res) => {
-    const servicoAtualizado: Servico = req.body;
-    const index = servicos.findIndex(s => s.id === servicoAtualizado.id);
     if (index !== -1) {
-        servicos[index] = { ...servicoAtualizado, preco: parseFloat(String(servicoAtualizado.preco)) };
+        servicos[index] = { ...servicos[index], nome, preco: parseFloat(preco) };
+        console.log(`PUT /servicos/${id} -> Serviço atualizado:`, servicos[index]);
         res.status(200).json(servicos[index]);
     } else {
         res.status(404).send('Serviço não encontrado');
     }
 });
 
-app.delete('/servico/excluir', (req, res) => {
-    const { id } = req.body;
-    const index = servicos.findIndex(s => s.id === id);
-    if (index !== -1) {
-        servicos.splice(index, 1);
-        res.status(200).json({ message: 'Serviço excluído com sucesso' });
-    } else {
-        res.status(404).send('Serviço não encontrado');
-    }
+// DELETE /servicos/:id: Rota para DELETAR um serviço
+app.delete('/servicos/:id', (req, res) => {
+    const id = parseInt(req.params.id, 10);
+    const servicoExcluido = servicos.find(s => s.id === id);
+    servicos = servicos.filter(s => s.id !== id);
+    console.log(`DELETE /servicos/${id} -> Serviço excluído:`, servicoExcluido);
+    res.status(200).json({ message: 'Serviço excluído com sucesso' });
 });
 
 
-const PORT = 32833;
+// --- Inicialização do Servidor ---
+const PORT = 3001; // Usaremos a porta 3001 para evitar conflitos
 app.listen(PORT, () => {
-    console.log(`Backend em TypeScript rodando em http://localhost:${PORT}`);
+    console.log(`Backend limpo e funcional rodando em http://localhost:${PORT}`);
 });

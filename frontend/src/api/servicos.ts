@@ -1,37 +1,31 @@
-const API_URL = "http://localhost:32833";
+import axios from 'axios';
+import { Servico } from '../componentes/servicos'; // Vamos importar a interface do nosso componente principal
 
-export async function listarServicos() {
-    const resp = await fetch(`${API_URL}/servicos`);
-    if (!resp.ok) throw new Error("Erro ao buscar serviços");
-    return resp.json();
-}
+// Configuração do Axios para se comunicar com o backend
+const api = axios.create({
+  baseURL: 'http://localhost:3001', // A porta deve ser a mesma do backend
+});
 
-export async function cadastrarServico(servico: any) {
-    const resp = await fetch(`${API_URL}/servico/cadastrar`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(servico)
-    });
-    if (!resp.ok) throw new Error("Erro ao cadastrar serviço");
-    return resp.json();
-}
+// Função para buscar todos os serviços no backend
+export const getServicos = async () => {
+  const response = await api.get('/servicos');
+  return response.data;
+};
 
-export async function atualizarServico(servico: any) {
-    const resp = await fetch(`${API_URL}/servico/atualizar`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(servico)
-    });
-    if (!resp.ok) throw new Error("Erro ao atualizar serviço");
-    return resp;
-}
+// Função para cadastrar um novo serviço
+export const cadastrarServico = async (servico: { nome: string; preco: string }) => {
+  const response = await api.post('/servicos', servico);
+  return response.data;
+};
 
-export async function excluirServico(servico: any) {
-    const resp = await fetch(`${API_URL}/servico/excluir`, {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(servico)
-    });
-    if (!resp.ok) throw new Error("Erro ao excluir serviço");
-    return resp;
-}
+// Função para atualizar um serviço existente
+export const atualizarServico = async (servico: Servico) => {
+  const response = await api.put(`/servicos/${servico.id}`, servico);
+  return response.data;
+};
+
+// Função para excluir um serviço
+export const excluirServico = async (id: number) => {
+  const response = await api.delete(`/servicos/${id}`);
+  return response.data;
+};

@@ -1,56 +1,76 @@
-import React, { useEffect, useState } from "react";
-import { cadastrarServico, atualizarServico } from "../api/servicos";
+import React, { useState, useEffect, FormEvent } from 'react';
+import { cadastrarServico, atualizarServico } from '../api/servicos';
+import { Servico } from './servicos';
 
 type Props = {
-    servico: any;
+    servico: Servico | null;
     onSave: () => void;
     onClose: () => void;
 }
 
 export default function FormularioCadastroServico({ servico, onSave, onClose }: Props) {
     const [nome, setNome] = useState('');
-    const [preco, setPreco] = useState(0);
+    const [preco, setPreco] = useState('');
 
     useEffect(() => {
         if (servico) {
             setNome(servico.nome || '');
-            setPreco(servico.preco || 0);
+            setPreco(String(servico.preco) || '');
         }
     }, [servico]);
 
-    async function handleSubmit(e: React.FormEvent) {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        const dadosServico = { id: servico?.id, nome, preco: Number(preco) };
         try {
-            if (servico?.id) {
-                await atualizarServico(dadosServico);
+            if (servico && servico.id) {
+                await atualizarServico({ ...servico, nome, preco: Number(preco) });
             } else {
-                await cadastrarServico(dadosServico);
+                await cadastrarServico({ nome, preco });
             }
             onSave();
         } catch (error) {
-            console.error("Falha ao salvar serviço:", error);
+            console.error("Falha ao salvar o serviço:", error);
             alert("Não foi possível salvar o serviço.");
         }
-    }
+    };
 
     return (
-        <div className="container mx-auto">
-            <h1 className="text-2xl font-bold mb-4">{servico?.id ? 'Editando Serviço' : 'Cadastro de Serviço'}</h1>
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                    <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome do Serviço</label>
-                    <input type="text" id="nome" value={nome} onChange={(e) => setNome(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" required />
+        <div className="p-6 bg-white rounded-lg shadow-xl w-full max-w-md">
+            <h2 className="text-2xl font-bold mb-4">{servico?.id ? 'Editar Serviço' : 'Cadastrar Novo Serviço'}</h2>
+            <form onSubmit={handleSubmit}>
+                <div className="mb-4">
+                    <label htmlFor="nome" className="block text-gray-700 text-sm font-bold mb-2">Nome do Serviço</label>
+                    <input
+                        type="text"
+                        id="nome"
+                        value={nome}
+                        onChange={(e) => setNome(e.target.value)}
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required
+                    />
                 </div>
-                <div>
-                    <label htmlFor="preco" className="block text-sm font-medium text-gray-700">Preço</label>
-                    <input type="number" step="0.01" id="preco" value={preco} onChange={(e) => setPreco(Number(e.target.value))} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm" required />
+                <div className="mb-6">
+                    <label htmlFor="preco" className="block text-gray-700 text-sm font-bold mb-2">Preço (R$)</label>
+                    <input
+                        type="number"
+                        id="preco"
+                        value={preco}
+                        onChange={(e) => setPreco(e.target.value)}
+                        className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required
+                        step="0.01"
+                        min="0"
+                    />
                 </div>
-                <div className="flex justify-end space-x-4 pt-4">
-                    <button type="button" onClick={onClose} className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400">Cancelar</button>
-                    <button type="submit" className="px-4 py-2 bg-green-primary text-white rounded-md hover:bg-green-dark">{servico?.id ? 'Salvar Alterações' : 'Cadastrar'}</button>
+                <div className="flex items-center justify-end space-x-4">
+                    <button type="button" onClick={onClose} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Cancelar
+                    </button>
+                    <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                        Salvar
+                    </button>
                 </div>
             </form>
         </div>
-    )
+    );
 }
