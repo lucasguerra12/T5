@@ -3,6 +3,7 @@ import BarraNavegacao from "./barraNavegacao";
 import Clientes from "./clientes";
 import Home from "./home";
 import Produtos from "./produtos";
+import Servicos from "./servicos";
 
 function Roteador() {
     return (
@@ -13,6 +14,7 @@ function Roteador() {
                     <Route path="/" element={<Home />} />
                     <Route path="/clientes" element={<Clientes />} />
                     <Route path="/produtos" element={<Produtos />} /> 
+                    <Route path="/servicos" element={<Servicos />} />
                 </Routes>
             </BrowserRouter>
         </>

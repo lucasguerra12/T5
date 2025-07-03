@@ -18,6 +18,7 @@ export default function BarraNavegacao() {
                                 <a href="/" className="text-white hover:bg-green-dark rounded-md px-3 py-2 text-sm font-medium" aria-current="page">Home</a>
                                 <a href="/clientes" className="text-gray-300 hover:bg-green-dark hover:text-white rounded-md px-3 py-2 text-sm font-medium">Clientes</a>
                                 <a href="/produtos" className="text-gray-300 hover:bg-green-dark hover:text-white rounded-md px-3 py-2 text-sm font-medium">Produtos</a>
+                                <a href="/servicos" className="text-gray-300 hover:bg-green-dark hover:text-white rounded-md px-3 py-2 text-sm font-medium">Serviços</a>
                             </div>
                         </div>
                     </div>
