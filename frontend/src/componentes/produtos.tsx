@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { listarProdutos, excluirProduto, cadastrarProduto, atualizarProduto } from "../api/produtos";
-import FormularioCadastroProduto from "./FormularioCadastroProduto";
+import FormularioCadastroProduto from "./formularioCadastroProduto";
 
 export default function Produtos() {
     const [produtos, setProdutos] = useState<any[]>([]);
