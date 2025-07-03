@@ -47,6 +47,19 @@ let produtos: Produto[] = [
 ];
 let proximoIdProduto = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
 
+interface Servico {
+    id: number;
+    nome: string;
+    preco: number;
+}
+
+let servicos: Servico[] = [
+    { id: 1, nome: 'Manicure', preco: 40.00 },
+    { id: 2, nome: 'Pedicure', preco: 50.00 },
+    { id: 3, nome: 'Corte de Cabelo', preco: 70.00 }
+];
+let proximoIdServico = servicos.length > 0 ? Math.max(...servicos.map(s => s.id)) + 1 : 1;
+
 
 
 
@@ -133,6 +146,38 @@ app.delete('/produto/excluir', (req, res) => {
         res.status(200).json({ message: 'Produto excluído com sucesso' });
     } else {
         res.status(404).send('Produto não encontrado');
+    }
+});
+
+app.get('/servicos', (req, res) => {
+    res.json(servicos);
+});
+
+app.post('/servico/cadastrar', (req, res) => {
+    const novoServico: Servico = { ...req.body, id: proximoIdServico++ };
+    servicos.push(novoServico);
+    res.status(201).json(novoServico);
+});
+
+app.put('/servico/atualizar', (req, res) => {
+    const servicoAtualizado: Servico = req.body;
+    const index = servicos.findIndex(s => s.id === servicoAtualizado.id);
+    if (index !== -1) {
+        servicos[index] = servicoAtualizado;
+        res.status(200).json(servicos[index]);
+    } else {
+        res.status(404).send('Serviço não encontrado');
+    }
+});
+
+app.delete('/servico/excluir', (req, res) => {
+    const { id } = req.body;
+    const index = servicos.findIndex(s => s.id === id);
+    if (index !== -1) {
+        servicos.splice(index, 1);
+        res.status(200).json({ message: 'Serviço excluído com sucesso' });
+    } else {
+        res.status(404).send('Serviço não encontrado');
     }
 });
 
