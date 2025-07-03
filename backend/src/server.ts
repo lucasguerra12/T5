@@ -24,11 +24,16 @@ interface Endereco {
 interface Cliente {
     id: number;
     nome: string;
-    sobreNome: string;
-    email: string;
-    endereco: Endereco;
-    telefones: Telefone[];
+    nomeSocial: string;
+    genero: string;
+    cpf: string;
+    rgs: string[];
+    dataCadastro: Date;
+    telefones: string[];
+    produtosConsumidos: number[];
+    servicosConsumidos: number[];
 }
+
 
 interface Produto {
     id: number;
@@ -44,8 +49,18 @@ interface Servico {
 
 
 let clientes: Cliente[] = [
-    { id: 1, nome: "Ana", sobreNome: "Silva", email: "ana.silva@example.com", endereco: { estado: "SP", cidade: "São Paulo", bairro: "Centro", rua: "Rua A", numero: "123", codigoPostal: "01000-000", informacoesAdicionais: "" }, telefones: [{ ddd: "11", numero: "98765-4321" }] },
-    { id: 2, nome: "Bruno", sobreNome: "Santos", email: "bruno.santos@example.com", endereco: { estado: "RJ", cidade: "Rio de Janeiro", bairro: "Copacabana", rua: "Av. B", numero: "456", codigoPostal: "22000-000", informacoesAdicionais: "Apto 101" }, telefones: [{ ddd: "21", numero: "91234-5678" }] },
+    {
+        id: 1,
+        nome: "João Silva",
+        nomeSocial: "João",
+        genero: "Masculino",
+        cpf: "123.456.789-00",
+        rgs: ["12.345.678-9"],
+        dataCadastro: new Date(),
+        telefones: ["(11) 98765-4321"],
+        produtosConsumidos: [1, 2],
+        servicosConsumidos: [1],
+    },
 ];
 let produtos: Produto[] = [
     { id: 1, nome: "Shampoo Hidratante Profundo", preco: 45.90 },
@@ -151,6 +166,134 @@ app.delete('/servicos/:id', (req, res) => {
     servicos = servicos.filter(s => s.id !== id);
     res.status(200).json({ message: 'Serviço excluído com sucesso' });
 });
+
+app.get('/api/relatorio/top-10-clientes-quantidade', (req, res) => {
+    const clientesComContagem = clientes.map(cliente => {
+        const quantidade = cliente.produtosConsumidos.length + cliente.servicosConsumidos.length;
+        return { ...cliente, quantidade };
+    });
+    const top10 = clientesComContagem.sort((a, b) => b.quantidade - a.quantidade).slice(0, 10);
+    res.json(top10);
+});
+
+// ROTA 2: Listagem de todos os clientes por gênero
+app.get('/api/relatorio/clientes-por-genero', (req, res) => {
+    const clientesPorGenero: { [key: string]: any[] } = {};
+    clientes.forEach(cliente => {
+        if (!clientesPorGenero[cliente.genero]) {
+            clientesPorGenero[cliente.genero] = [];
+        }
+        clientesPorGenero[cliente.genero].push(cliente);
+    });
+    res.json(clientesPorGenero);
+});
+
+// ROTA 3: Listagem geral dos serviços ou produtos mais consumidos
+app.get('/api/relatorio/mais-consumidos', (req, res) => {
+    const contagem: { [key: string]: { nome: string, tipo: 'Produto' | 'Serviço', quantidade: number } } = {};
+
+    clientes.forEach(cliente => {
+        cliente.produtosConsumidos.forEach((idProduto: number) => {
+            const produto = produtos.find(p => p.id === idProduto);
+            if (produto) {
+                const chave = `produto-${idProduto}`;
+                if (!contagem[chave]) {
+                    contagem[chave] = { nome: produto.nome, tipo: 'Produto', quantidade: 0 };
+                }
+                contagem[chave].quantidade++;
+            }
+        });
+
+        cliente.servicosConsumidos.forEach((idServico: number) => {
+            const servico = servicos.find(s => s.id === idServico);
+            if (servico) {
+                const chave = `servico-${idServico}`;
+                if (!contagem[chave]) {
+                    contagem[chave] = { nome: servico.nome, tipo: 'Serviço', quantidade: 0 };
+                }
+                contagem[chave].quantidade++;
+            }
+        });
+    });
+
+    const listaConsumidos = Object.values(contagem).sort((a, b) => b.quantidade - a.quantidade);
+    res.json(listaConsumidos);
+});
+
+// ROTA 4: Listagem dos serviços ou produtos mais consumidos por gênero
+app.get('/api/relatorio/mais-consumidos-por-genero', (req, res) => {
+    const consumoPorGenero: { [key: string]: any } = {};
+
+    clientes.forEach(cliente => {
+        const genero = cliente.genero;
+        if (!consumoPorGenero[genero]) {
+            consumoPorGenero[genero] = {};
+        }
+
+        cliente.produtosConsumidos.forEach((idProduto: number) => {
+            const produto = produtos.find(p => p.id === idProduto);
+            if (produto) {
+                const chave = `produto-${idProduto}`;
+                if (!consumoPorGenero[genero][chave]) {
+                    consumoPorGenero[genero][chave] = { nome: produto.nome, tipo: 'Produto', quantidade: 0 };
+                }
+                consumoPorGenero[genero][chave].quantidade++;
+            }
+        });
+
+        cliente.servicosConsumidos.forEach((idServico: number) => {
+            const servico = servicos.find(s => s.id === idServico);
+            if (servico) {
+                const chave = `servico-${idServico}`;
+                if (!consumoPorGenero[genero][chave]) {
+                    consumoPorGenero[genero][chave] = { nome: servico.nome, tipo: 'Serviço', quantidade: 0 };
+                }
+                consumoPorGenero[genero][chave].quantidade++;
+            }
+        });
+    });
+    
+    // Transforma o objeto em uma lista ordenada para cada gênero
+    for(const genero in consumoPorGenero) {
+        consumoPorGenero[genero] = Object.values(consumoPorGenero[genero]).sort((a: any, b: any) => b.quantidade - a.quantidade);
+    }
+
+    res.json(consumoPorGenero);
+});
+
+
+// ROTA 5: Listagem dos 10 clientes que menos consumiram
+app.get('/api/relatorio/bottom-10-clientes-quantidade', (req, res) => {
+    const clientesComContagem = clientes.map(cliente => {
+        const quantidade = cliente.produtosConsumidos.length + cliente.servicosConsumidos.length;
+        return { ...cliente, quantidade };
+    });
+    // Ordena em ordem ascendente para pegar os que menos consumiram
+    const top10 = clientesComContagem.sort((a, b) => a.quantidade - b.quantidade).slice(0, 10);
+    res.json(top10);
+});
+
+
+// ROTA 6: Listagem dos 5 clientes que mais consumiram em valor
+app.get('/api/relatorio/top-5-clientes-valor', (req, res) => {
+    const clientesComValor = clientes.map(cliente => {
+        let valorProdutos = cliente.produtosConsumidos.reduce((total: number, idProduto: number) => {
+            const produto = produtos.find(p => p.id === idProduto);
+            return total + (produto ? produto.preco : 0);
+        }, 0);
+
+        let valorServicos = cliente.servicosConsumidos.reduce((total: number, idServico: number) => {
+            const servico = servicos.find(s => s.id === idServico);
+            return total + (servico ? servico.preco : 0);
+        }, 0);
+
+        return { ...cliente, valorTotal: valorProdutos + valorServicos };
+    });
+
+    const top5 = clientesComValor.sort((a, b) => b.valorTotal - a.valorTotal).slice(0, 5);
+    res.json(top5);
+});
+
 
 
 

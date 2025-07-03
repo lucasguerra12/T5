@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: 'http://localhost:3001', // A porta deve ser a mesma do backend
+const apiClient = axios.create({
+    baseURL: 'http://localhost:3001/api', 
 });
 
-export const getClientesMaisConsumoQuantidade = () => api.get('/listagens/clientes-mais-consumo-quantidade').then(res => res.data);
-export const getClientesPorGenero = () => api.get('/listagens/clientes-por-genero').then(res => res.data);
-export const getConsumoGeral = () => api.get('/listagens/consumo-geral').then(res => res.data);
-export const getConsumoPorGenero = () => api.get('/listagens/consumo-por-genero').then(res => res.data);
-export const getClientesMenosConsumoQuantidade = () => api.get('/listagens/clientes-menos-consumo-quantidade').then(res => res.data);
-export const getClientesMaisConsumoValor = () => api.get('/listagens/clientes-mais-consumo-valor').then(res => res.data);
+export const getTop10ClientesQuantidade = () => apiClient.get('/relatorio/top-10-clientes-quantidade');
+export const getClientesPorGenero = () => apiClient.get('/relatorio/clientes-por-genero');
+export const getMaisConsumidos = () => apiClient.get('/relatorio/mais-consumidos');
+export const getMaisConsumidosPorGenero = () => apiClient.get('/relatorio/mais-consumidos-por-genero');
+export const getBottom10ClientesQuantidade = () => apiClient.get('/relatorio/bottom-10-clientes-quantidade');
+export const getTop5ClientesValor = () => apiClient.get('/relatorio/top-5-clientes-valor');

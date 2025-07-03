@@ -1,15 +1,31 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
-export default function BarraNavegacao() {
+export default function BarraNavegacao() { 
     return (
-        <nav className="bg-green-primary p-4 shadow-md">
-            <div className="container mx-auto flex justify-between items-center">
-                <Link to="/" className="text-white text-2xl font-bold">WB</Link>
-                <div className="flex space-x-4">
-                    <Link to="/clientes" className="text-white hover:text-gray-200">Clientes</Link>
-                    <Link to="/produtos" className="text-white hover:text-gray-200">Produtos</Link>
-                    <Link to="/servicos" className="text-white hover:text-gray-200">Serviços</Link>
-                    <Link to="/listagens" className="text-white hover:text-gray-200">Listagens</Link> {/* Adicione o novo link */}
+        <nav className="navbar navbar-expand-lg bg-light">
+            <div className="container-fluid">
+                <Link to="/" className="navbar-brand">WB</Link>
+                <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span className="navbar-toggler-icon"></span>
+                </button>
+                <div className="collapse navbar-collapse" id="navbarNav">
+                    <ul className="navbar-nav">
+                        <li className="nav-item">
+                            <Link to="/" className="nav-link">Home</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link to="/clientes" className="nav-link">Clientes</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link to="/produtos" className="nav-link">Produtos</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link to="/servicos" className="nav-link">Serviços</Link>
+                        </li>
+                        <li className="nav-item">
+                            <Link to="/listagens" className="nav-link">Listagens</Link>
+                        </li>
+                    </ul>
                 </div>
             </div>
         </nav>
