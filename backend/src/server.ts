@@ -168,23 +168,25 @@ app.delete('/servicos/:id', (req, res) => {
 });
 
 app.get('/api/relatorio/top-10-clientes-quantidade', (req, res) => {
-    const clientesComContagem = clientes.map(cliente => {
-        const quantidade = cliente.produtosConsumidos.length + cliente.servicosConsumidos.length;
-        return { ...cliente, quantidade };
-    });
+    const clientesComContagem = clientes.map(cliente => ({
+        ...cliente,
+        quantidade: cliente.produtosConsumidos.length + cliente.servicosConsumidos.length
+    }));
     const top10 = clientesComContagem.sort((a, b) => b.quantidade - a.quantidade).slice(0, 10);
     res.json(top10);
 });
 
 // ROTA 2: Listagem de todos os clientes por gênero
 app.get('/api/relatorio/clientes-por-genero', (req, res) => {
-    const clientesPorGenero: { [key: string]: any[] } = {};
-    clientes.forEach(cliente => {
-        if (!clientesPorGenero[cliente.genero]) {
-            clientesPorGenero[cliente.genero] = [];
+    // CORREÇÃO: Usando reduce para agrupar os clientes de forma mais segura
+    const clientesPorGenero = clientes.reduce((acc, cliente) => {
+        const genero = cliente.genero;
+        if (!acc[genero]) {
+            acc[genero] = [];
         }
-        clientesPorGenero[cliente.genero].push(cliente);
-    });
+        acc[genero].push(cliente);
+        return acc;
+    }, {} as { [key: string]: Cliente[] });
     res.json(clientesPorGenero);
 });
 
@@ -193,7 +195,7 @@ app.get('/api/relatorio/mais-consumidos', (req, res) => {
     const contagem: { [key: string]: { nome: string, tipo: 'Produto' | 'Serviço', quantidade: number } } = {};
 
     clientes.forEach(cliente => {
-        cliente.produtosConsumidos.forEach((idProduto: number) => {
+        cliente.produtosConsumidos.forEach(idProduto => {
             const produto = produtos.find(p => p.id === idProduto);
             if (produto) {
                 const chave = `produto-${idProduto}`;
@@ -204,7 +206,7 @@ app.get('/api/relatorio/mais-consumidos', (req, res) => {
             }
         });
 
-        cliente.servicosConsumidos.forEach((idServico: number) => {
+        cliente.servicosConsumidos.forEach(idServico => {
             const servico = servicos.find(s => s.id === idServico);
             if (servico) {
                 const chave = `servico-${idServico}`;
@@ -222,67 +224,55 @@ app.get('/api/relatorio/mais-consumidos', (req, res) => {
 
 // ROTA 4: Listagem dos serviços ou produtos mais consumidos por gênero
 app.get('/api/relatorio/mais-consumidos-por-genero', (req, res) => {
-    const consumoPorGenero: { [key: string]: any } = {};
+    type ConsumoItem = { nome: string; tipo: 'Produto' | 'Serviço'; quantidade: number };
+    const consumoPorGenero: { [key: string]: { [key: string]: ConsumoItem } } = {};
 
     clientes.forEach(cliente => {
         const genero = cliente.genero;
         if (!consumoPorGenero[genero]) {
             consumoPorGenero[genero] = {};
         }
-
-        cliente.produtosConsumidos.forEach((idProduto: number) => {
-            const produto = produtos.find(p => p.id === idProduto);
-            if (produto) {
-                const chave = `produto-${idProduto}`;
-                if (!consumoPorGenero[genero][chave]) {
-                    consumoPorGenero[genero][chave] = { nome: produto.nome, tipo: 'Produto', quantidade: 0 };
-                }
-                consumoPorGenero[genero][chave].quantidade++;
+        
+        const processaConsumo = (item: Produto | Servico | undefined, tipo: 'Produto' | 'Serviço') => {
+            if (!item) return;
+            const chave = `${tipo.toLowerCase()}-${item.id}`;
+            if (!consumoPorGenero[genero][chave]) {
+                consumoPorGenero[genero][chave] = { nome: item.nome, tipo, quantidade: 0 };
             }
-        });
-
-        cliente.servicosConsumidos.forEach((idServico: number) => {
-            const servico = servicos.find(s => s.id === idServico);
-            if (servico) {
-                const chave = `servico-${idServico}`;
-                if (!consumoPorGenero[genero][chave]) {
-                    consumoPorGenero[genero][chave] = { nome: servico.nome, tipo: 'Serviço', quantidade: 0 };
-                }
-                consumoPorGenero[genero][chave].quantidade++;
-            }
-        });
+            consumoPorGenero[genero][chave].quantidade++;
+        };
+        
+        cliente.produtosConsumidos.forEach(id => processaConsumo(produtos.find(p => p.id === id), 'Produto'));
+        cliente.servicosConsumidos.forEach(id => processaConsumo(servicos.find(s => s.id === id), 'Serviço'));
     });
     
-    // Transforma o objeto em uma lista ordenada para cada gênero
-    for(const genero in consumoPorGenero) {
-        consumoPorGenero[genero] = Object.values(consumoPorGenero[genero]).sort((a: any, b: any) => b.quantidade - a.quantidade);
+    const resultadoFinal: { [key: string]: ConsumoItem[] } = {};
+    for (const genero in consumoPorGenero) {
+        resultadoFinal[genero] = Object.values(consumoPorGenero[genero]).sort((a, b) => b.quantidade - a.quantidade);
     }
 
-    res.json(consumoPorGenero);
+    res.json(resultadoFinal);
 });
-
 
 // ROTA 5: Listagem dos 10 clientes que menos consumiram
 app.get('/api/relatorio/bottom-10-clientes-quantidade', (req, res) => {
-    const clientesComContagem = clientes.map(cliente => {
-        const quantidade = cliente.produtosConsumidos.length + cliente.servicosConsumidos.length;
-        return { ...cliente, quantidade };
-    });
-    // Ordena em ordem ascendente para pegar os que menos consumiram
-    const top10 = clientesComContagem.sort((a, b) => a.quantidade - b.quantidade).slice(0, 10);
-    res.json(top10);
+    const clientesComContagem = clientes.map(cliente => ({
+        ...cliente,
+        quantidade: cliente.produtosConsumidos.length + cliente.servicosConsumidos.length
+    }));
+    const bottom10 = clientesComContagem.sort((a, b) => a.quantidade - b.quantidade).slice(0, 10);
+    res.json(bottom10);
 });
-
 
 // ROTA 6: Listagem dos 5 clientes que mais consumiram em valor
 app.get('/api/relatorio/top-5-clientes-valor', (req, res) => {
     const clientesComValor = clientes.map(cliente => {
-        let valorProdutos = cliente.produtosConsumidos.reduce((total: number, idProduto: number) => {
+        const valorProdutos = cliente.produtosConsumidos.reduce((total, idProduto) => {
             const produto = produtos.find(p => p.id === idProduto);
             return total + (produto ? produto.preco : 0);
         }, 0);
 
-        let valorServicos = cliente.servicosConsumidos.reduce((total: number, idServico: number) => {
+        const valorServicos = cliente.servicosConsumidos.reduce((total, idServico) => {
             const servico = servicos.find(s => s.id === idServico);
             return total + (servico ? servico.preco : 0);
         }, 0);
