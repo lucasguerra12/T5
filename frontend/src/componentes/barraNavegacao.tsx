@@ -22,9 +22,6 @@ export default function BarraNavegacao() {
                         <li className="nav-item">
                             <Link to="/servicos" className="nav-link">Serviços</Link>
                         </li>
-                        <li className="nav-item">
-                            <Link to="/listagens" className="nav-link">Listagens</Link>
-                        </li>
                     </ul>
                 </div>
             </div>
