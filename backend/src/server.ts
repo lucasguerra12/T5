@@ -24,16 +24,11 @@ interface Endereco {
 interface Cliente {
     id: number;
     nome: string;
-    nomeSocial: string;
-    genero: string;
-    cpf: string;
-    rgs: string[];
-    dataCadastro: Date;
-    telefones: string[];
-    produtosConsumidos: number[];
-    servicosConsumidos: number[];
+    sobreNome: string;
+    email: string;
+    endereco: Endereco;
+    telefones: Telefone[];
 }
-
 
 interface Produto {
     id: number;
@@ -49,18 +44,8 @@ interface Servico {
 
 
 let clientes: Cliente[] = [
-    {
-        id: 1,
-        nome: "João Silva",
-        nomeSocial: "João",
-        genero: "Masculino",
-        cpf: "123.456.789-00",
-        rgs: ["12.345.678-9"],
-        dataCadastro: new Date(),
-        telefones: ["(11) 98765-4321"],
-        produtosConsumidos: [1, 2],
-        servicosConsumidos: [1],
-    },
+    { id: 1, nome: "Ana", sobreNome: "Silva", email: "ana.silva@example.com", endereco: { estado: "SP", cidade: "São Paulo", bairro: "Centro", rua: "Rua A", numero: "123", codigoPostal: "01000-000", informacoesAdicionais: "" }, telefones: [{ ddd: "11", numero: "98765-4321" }] },
+    { id: 2, nome: "Bruno", sobreNome: "Santos", email: "bruno.santos@example.com", endereco: { estado: "RJ", cidade: "Rio de Janeiro", bairro: "Copacabana", rua: "Av. B", numero: "456", codigoPostal: "22000-000", informacoesAdicionais: "Apto 101" }, telefones: [{ ddd: "21", numero: "91234-5678" }] },
 ];
 let produtos: Produto[] = [
     { id: 1, nome: "Shampoo Hidratante Profundo", preco: 45.90 },
@@ -166,6 +151,7 @@ app.delete('/servicos/:id', (req, res) => {
     servicos = servicos.filter(s => s.id !== id);
     res.status(200).json({ message: 'Serviço excluído com sucesso' });
 });
+
 
 
 const PORT = 3001;
