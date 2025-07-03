@@ -10,7 +10,6 @@ type props = {
 }
 
 export default function FormularioCadastro(props: props) {
-    // Passo 1: A solução definitiva. Garante que 'cliente' seja sempre um objeto.
     const cliente = props.cliente || {};
     const { onSave, onClose, setTela, setCliente } = props;
 
@@ -30,7 +29,6 @@ export default function FormularioCadastro(props: props) {
         informacoesAdicionais: ''
     })
 
-    // Passo 2: O useEffect agora depende da variável 'cliente' que é sempre segura.
     useEffect(() => {
         if (cliente.id) {
             setNome(cliente.nome || '');
@@ -106,7 +104,7 @@ export default function FormularioCadastro(props: props) {
         <div className="container mx-auto p-4">
             <h1 className="text-2xl font-bold mb-4">{cliente.id ? 'Editando Cliente' : 'Cadastro de Cliente'}</h1>
             <form onSubmit={submeterFormulario} className="space-y-4">
-                {/* O restante do formulário continua o mesmo */}
+             
                 <div>
                     <label htmlFor="nome" className="block text-sm font-medium text-gray-700">Nome</label>
                     <input type="text" id="nome" value={nome} onChange={(e) => setNome(e.target.value)} className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" />

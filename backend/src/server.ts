@@ -5,6 +5,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+
+
 interface Telefone {
     ddd: string;
     numero: string;
@@ -29,23 +31,11 @@ interface Cliente {
     telefones: Telefone[];
 }
 
-let clientes: Cliente[] = [
-];
-let proximoId = clientes.length > 0 ? Math.max(...clientes.map(c => c.id)) + 1 : 1;
-
-
 interface Produto {
     id: number;
     nome: string;
     preco: number;
 }
-
-let produtos: Produto[] = [
-    { id: 1, nome: 'Shampoo Anti-caspa', preco: 35.50 },
-    { id: 2, nome: 'Condicionador Hidratante', preco: 45.00 },
-    { id: 3, nome: 'Gel Modelador', preco: 25.00 }
-];
-let proximoIdProduto = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
 
 interface Servico {
     id: number;
@@ -53,76 +43,80 @@ interface Servico {
     preco: number;
 }
 
+
+let clientes: Cliente[] = [];
+let produtos: Produto[] = [
+    { id: 1, nome: 'Shampoo Anti-caspa', preco: 35.50 },
+    { id: 2, nome: 'Condicionador Hidratante', preco: 45.00 },
+    { id: 3, nome: 'Gel Modelador', preco: 25.00 }
+];
 let servicos: Servico[] = [
     { id: 1, nome: 'Manicure', preco: 40.00 },
     { id: 2, nome: 'Pedicure', preco: 50.00 },
     { id: 3, nome: 'Corte de Cabelo', preco: 70.00 }
 ];
+
+let proximoIdCliente = clientes.length > 0 ? Math.max(...clientes.map(c => c.id)) + 1 : 1;
+let proximoIdProduto = produtos.length > 0 ? Math.max(...produtos.map(p => p.id)) + 1 : 1;
 let proximoIdServico = servicos.length > 0 ? Math.max(...servicos.map(s => s.id)) + 1 : 1;
 
 
 
-
 app.get('/clientes', (req, res) => {
-    console.log('GET /clientes -> Listando todos os clientes.');
     res.json(clientes);
 });
-
 
 app.get('/cliente/:id', (req, res) => {
     const id = parseInt(req.params.id, 10);
     const cliente = clientes.find(c => c.id === id);
     if (cliente) {
-        console.log(`GET /cliente/${id} -> Cliente encontrado:`, cliente.nome);
         res.json(cliente);
     } else {
-        console.log(`GET /cliente/${id} -> Cliente não encontrado.`);
         res.status(404).send('Cliente não encontrado');
     }
 });
 
-
 app.post('/cliente/cadastrar', (req, res) => {
-    const novoCliente: Cliente = { ...req.body, id: proximoId++ };
+    const novoCliente: Cliente = { ...req.body, id: proximoIdCliente++ };
     clientes.push(novoCliente);
-    console.log('POST /cliente/cadastrar -> Cliente cadastrado:', novoCliente.nome);
     res.status(201).json(novoCliente);
 });
-
 
 app.put('/cliente/atualizar', (req, res) => {
     const clienteAtualizado: Cliente = req.body;
     const index = clientes.findIndex(c => c.id === clienteAtualizado.id);
     if (index !== -1) {
         clientes[index] = clienteAtualizado;
-        console.log('PUT /cliente/atualizar -> Cliente atualizado:', clienteAtualizado.nome);
         res.status(200).json(clientes[index]);
     } else {
-        console.log(`PUT /cliente/atualizar -> Cliente com ID ${clienteAtualizado.id} não encontrado.`);
         res.status(404).send('Cliente não encontrado');
     }
 });
-
 
 app.delete('/cliente/excluir', (req, res) => {
     const { id } = req.body;
     const index = clientes.findIndex(c => c.id === id);
     if (index !== -1) {
-        const clienteRemovido = clientes.splice(index, 1);
-        console.log('DELETE /cliente/excluir -> Cliente excluído:', clienteRemovido[0].nome);
+        clientes.splice(index, 1);
         res.status(200).json({ message: 'Cliente excluído com sucesso' });
     } else {
-        console.log(`DELETE /cliente/excluir -> Cliente com ID ${id} não encontrado.`);
         res.status(404).send('Cliente não encontrado');
     }
 });
+
+
 
 app.get('/produtos', (req, res) => {
     res.json(produtos);
 });
 
 app.post('/produto/cadastrar', (req, res) => {
-    const novoProduto: Produto = { ...req.body, id: proximoIdProduto++ };
+    const { nome, preco } = req.body;
+    const novoProduto: Produto = { 
+        id: proximoIdProduto++, 
+        nome, 
+        preco: parseFloat(preco)
+    };
     produtos.push(novoProduto);
     res.status(201).json(novoProduto);
 });
@@ -131,7 +125,7 @@ app.put('/produto/atualizar', (req, res) => {
     const produtoAtualizado: Produto = req.body;
     const index = produtos.findIndex(p => p.id === produtoAtualizado.id);
     if (index !== -1) {
-        produtos[index] = produtoAtualizado;
+        produtos[index] = { ...produtoAtualizado, preco: parseFloat(String(produtoAtualizado.preco)) };
         res.status(200).json(produtos[index]);
     } else {
         res.status(404).send('Produto não encontrado');
@@ -149,21 +143,29 @@ app.delete('/produto/excluir', (req, res) => {
     }
 });
 
+
 app.get('/servicos', (req, res) => {
     res.json(servicos);
 });
 
+
 app.post('/servico/cadastrar', (req, res) => {
-    const novoServico: Servico = { ...req.body, id: proximoIdServico++ };
+    const { nome, preco } = req.body;
+    const novoServico: Servico = { 
+        id: proximoIdServico++, 
+        nome, 
+        preco: parseFloat(preco)
+    };
     servicos.push(novoServico);
     res.status(201).json(novoServico);
 });
+
 
 app.put('/servico/atualizar', (req, res) => {
     const servicoAtualizado: Servico = req.body;
     const index = servicos.findIndex(s => s.id === servicoAtualizado.id);
     if (index !== -1) {
-        servicos[index] = servicoAtualizado;
+        servicos[index] = { ...servicoAtualizado, preco: parseFloat(String(servicoAtualizado.preco)) };
         res.status(200).json(servicos[index]);
     } else {
         res.status(404).send('Serviço não encontrado');
@@ -182,7 +184,7 @@ app.delete('/servico/excluir', (req, res) => {
 });
 
 
-const PORT = 32833; 
+const PORT = 32833;
 app.listen(PORT, () => {
     console.log(`Backend em TypeScript rodando em http://localhost:${PORT}`);
 });
